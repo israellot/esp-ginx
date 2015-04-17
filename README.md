@@ -28,7 +28,7 @@ Later I ported Joyent's http parser (https://github.com/joyent/http-parser), whi
 
 The File System
 ---------------
-I personally didn't like the overhead of decompressing static files to send over http as in esp-httpd, so I created a rom file system that consists of a static FS descriptor and an array with the data concatenated. To keep size short, I compress the files with gzip and send the compressed data stream with the gzip content-encoding.
+I personally didn't like the overhead of decompressing static files to send over http as in esp-httpd, so I created a rom file system that consists of a static FS descriptor and an array with the data concatenated. To keep size short, I compress the files with gzip and send the compressed data stream with the gzip content-encoding. I could fit the whole bootstrap css+js files even if I didn't need to, plus cats pictures to honor Sprite_tm.
 
 Static files are placed in the folder 'html' and there's a tool written in python to create the file system. The file system in the end id just a c file.
 Issuing 'Make html' creates/updates the file system.
