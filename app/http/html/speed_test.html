@@ -1,0 +1,198 @@
+<html>
+
+<head>
+  <title>Smart Relay</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="bootstrap.css"> 
+  </head>
+  <body>
+  	<nav class="navbar-inverse navbar-default">
+	  <div class="container-fluid">
+	    <div class="navbar-header">	     
+	      <a class="navbar-brand" href="#"></a>
+	    </div>
+	    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                     <li ><a href="/">Config</a></li>
+                     <li class="active"><a href="/speed-test">Speed Test</a></li>
+                     <li ><a href="/cats">Cats</a></li>                     
+                    </ul>                  
+                   
+        </div>
+	  </div>
+	</nav>
+	
+	<div class="container">
+		
+		<h1>Smart Relay</h1>
+		<div class="page-header">
+				<h3>Speed Test</h3>
+		</div>
+		<h2 id='status'>Connecting...</h2>
+        <div class="row">
+	        <div class="col-lg-1">
+	        	<div class="form-group">
+	                  <label class="control-label">Bytes / packet</label>
+	                  <div class="input-group" id="byte-count">                   			  
+						  <a href="#" class="list-group-item active" data-rate="32">32</a>
+						  <a href="#" class="list-group-item"  data-rate="64">64</a>
+						  <a href="#" class="list-group-item"  data-rate="128">128</a>
+						  <a href="#" class="list-group-item"  data-rate="256">256</a>
+						  <a href="#" class="list-group-item"  data-rate="512">512</a>
+						  <a href="#" class="list-group-item"  data-rate="1024">1024</a>
+					  </div>
+	            </div>
+	                
+	        </div>
+			 <div class="col-lg-10" >
+			 	 <canvas id="speed-chart" height="300"></canvas>
+			 </div>
+		 </div>		
+		 <div class="row" style="margin-bottom:30px">
+		 	<a href="#" class="btn btn-success"  id="start-stop-button">START</a>
+		 </div>
+		 
+
+	</div>
+
+	<script src="lib.js" type="text/javascript"></script>	
+
+	<script type="text/javascript">
+		
+		$(function(){
+
+			var ws_connected=0;
+			var running =0;
+
+			// Get the context of the canvas element we want to select
+			var canvas = $('#speed-chart');
+			canvas.attr('width',canvas.parent().width());
+
+			var ctx = document.getElementById("speed-chart").getContext("2d");
+			
+			var options = {animation :false} ;
+
+			var chartData = {
+		    labels: [],
+		    datasets: [
+				        {
+				            label: "Speed",
+				            fillColor: "rgba(220,220,220,0.2)",
+				            strokeColor: "rgba(220,220,220,1)",
+				            pointColor: "rgba(220,220,220,1)",
+				            pointStrokeColor: "#fff",
+				            pointHighlightFill: "#fff",
+				            pointHighlightStroke: "rgba(220,220,220,1)",
+				            data: []
+				        }
+		    		]
+			};
+
+			//init data			
+
+			var lineChart = new Chart(ctx).Line(chartData, options);
+
+			var date = new Date();
+			var time = date.getTime();
+
+			var received = 0;
+			var count = 0;			
+
+			function updateData(){
+				if(running){
+					//shift data
+
+			        //push new
+			        lineChart.addData([received+0],count.toString());
+
+			        if(count >= 60)
+			        	lineChart.removeData();
+
+			        //render update			        
+			        received=0;
+			        count++;
+				}
+				
+			}
+
+			setInterval(updateData,1000); //update every sec
+
+			var ws=null;
+			function connect(){
+
+				var newWs = new WebSocket("ws://smart.relay.com:8088");
+				if (newWs.readyState === 1) {
+					$('#status').text('Websocket connected!');
+			        ws_connected=1;
+			        received=0;
+				}
+				newWs.onopen = function()
+			     {
+			        $('#status').text('Websocket connected!');
+			        ws_connected=1;
+			        received=0;
+			     };
+			     newWs.onmessage = function (evt) 
+			     { 
+			        //update data				       
+			        received+=evt.data.size;
+			     };
+			     newWs.onclose = function()
+			     { 
+			     	ws_connected=0;
+			         $('#status').text('Websocket lost connection, trying again');
+			         running=0;
+					$('#start-stop-button').text('START');
+			         setTimeout(function(){connect();},1000);
+			     };
+
+			     ws=newWs;
+
+			}	
+			connect();
+			
+			$(document).on('click','#byte-count a', function(e){
+				e.preventDefault();
+				e.stopPropagation();
+
+				//clear active
+				$('#byte-count a').removeClass('active');
+				$(this).addClass('active');
+
+				if(running){
+					var rate = $(this).data('rate');
+					ws.send('stream start '+rate);
+				}
+			});
+
+			$(document).on('click','#start-stop-button', function(e){
+				e.preventDefault();
+				e.stopPropagation();
+
+				if(!running){
+					var rate = $('#byte-count a.active').data('rate');
+
+					//init data
+					chartData.datasets[0].data=[];
+					count=0;
+
+					ws.send('stream start '+rate);
+					$('#start-stop-button').text('STOP');
+					running=1;
+				}
+				else{
+					ws.send("stream stop");
+					running=0;
+					$('#start-stop-button').text('START');
+				}			
+
+
+
+			});
+
+		});
+	</script>
+
+  </body>
+ </html>
