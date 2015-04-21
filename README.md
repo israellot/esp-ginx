@@ -13,11 +13,12 @@ Main features
 3. Host check, means we can ensure server is on here.com and not there.com
 4. Redirects ( so #2 will work )
 5. HTTP Method enforcement
-7. URL rewrite ( very simple one )
+7. URL rewrite ( very simple one but gives us friendly urls)
 8. CGI ( similar to esp-httpd but with more features )
 9. CORS enabled 
 10. Zero-copy ( or almost ) request parse, inspired on NGINX parse.
-11. ROFS compressed with gzip 
+11. ROFS compressed with gzip
+12. WebSockects! 
 12. Bonus http client :)
 
 Overview
@@ -51,11 +52,25 @@ To do so the first step was to compile our own version of LwIP stack so we can e
 We then need to answer some known domains queries with our own ip, so we can capture those requests. Iphones for example to detect captive portal will issue a request to some random apple owned domains expecting 200 OK response, if we respond those requests with a redirect, voilà, the phone will open a login page with anything we like. It also works on PCs, windows will issue a requet to msftncsi.com to check for internet connection. When we redirect it, it will open our esp-ginx server on our loved browser.
 There's a list of knows domains on the DNS server. I could just answer all DNS queries with our esp ip, but it would then flood our little esp with nonsense http requests. 
 
+Websockets
+---
+Why? Mostly because I didn't see it around.
+I use it to speed test the esp's tcp capabilities, so a very simple application is written on top of the websocket stack that will keep flushing tcp packets of the chosen size so we can measure how many bytes / second we receive on the other end.
+
 The Demo
 --------
-This demo application is a relay board. There are two relays connected to GPIOs of a ESP-12. 
-Connecting to the esp's wifi network will open a single page config interface where we can select the network we want it to connect to. It will also indicate if that network has internet. There are two buttons that allow us to test the relays directly. Once the we got our esp conneted to a wifi network, we just need to be creative. In this demo you can connect the relays to MQTT topics and control them from anywhere in the world. You could serve your very best html page from the esp to the world as well :) 
+This demo application assumes:
+* Relays connects to GPIO 5 and 4
+* DHT22 sensor connected to GPIO 2
 
+You can :
+* Scan available wifi networks
+* Connect to an wifi network
+* Direct test the relays 
+* Read temperature and humidity data
+* Do a tcp speed test on ESP8266 using websockets ( no more discussion about it, data wins )
+* See the required pictures of cats
 
+![Speed Test](http://i.gyazo.com/89e3fcea70641e871a3bfbaf5d116d66.png)
 
 
