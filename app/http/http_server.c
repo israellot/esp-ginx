@@ -186,7 +186,7 @@ void ICACHE_FLASH_ATTR http_server_connect_callback(void *arg) {
 	c->cgi.execute = http_server_cgi_execute; // attach our cgi dispatcher	
 
 	//let's disable NAGLE alg so TCP outputs faster ( in theory )
-	//espconn_set_opt(conn, ESPCONN_NODELAY | ESPCONN_REUSEADDR );
+	espconn_set_opt(conn, ESPCONN_NODELAY | ESPCONN_REUSEADDR );
 
 }
 

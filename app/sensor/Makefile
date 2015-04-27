@@ -12,7 +12,7 @@
 #     a generated lib/image xxx.a ()
 #
 ifndef PDIR
-GEN_LIBS = mqtt.a
+GEN_LIBS = sensors.a
 endif
 
 #############################################################
@@ -39,6 +39,7 @@ endif
 INCLUDES := $(INCLUDES) -I $(PDIR)include
 INCLUDES += -I ./
 INCLUDES += -I ../libc
+INCLUDES += -I ../platform
 INCLUDES += -I ../
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile

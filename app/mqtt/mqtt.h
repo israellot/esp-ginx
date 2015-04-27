@@ -37,10 +37,10 @@
 #define MQTT_RECONNECT_TIMEOUT  5
 #define QUEUE_BUFFER_SIZE       2048
 
-//#define MQTT_DEBUG_ON
+#define MQTT_DEBUG_ON
 
 #ifdef MQTT_DEBUG_ON
-#define MQTT_DBG MQTT_DBG
+#define MQTT_DBG NODE_DBG
 #else 
 #define MQTT_DBG 
 #endif

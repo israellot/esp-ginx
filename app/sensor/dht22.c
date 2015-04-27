@@ -16,9 +16,9 @@
 #include "user_interface.h"
 #include "user_config.h"
 
-#include "driver/dht22.h"
+#include "dht22.h"
 
-//#define DHT_DEBUG_ON
+#define DHT_DEBUG_ON
 
 #ifdef DHT_DEBUG_ON
 #define DHT_DBG NODE_DBG
@@ -26,40 +26,24 @@
 #define DHT_DBG
 #endif
 
-#define DHT_PIN 4 
+#define DHT_PIN 5
 
 #define delay_ms(ms) os_delay_us(1000*ms)
 
-static dht_data read;
-
-static os_timer_t dht_timer;
-os_event_t taskQueue[2];
-#define SIG_DHT 22
-
-dht_data ICACHE_FLASH_ATTR dht22_read(){
-    return read;
-}
-
-
-
-static void ICACHE_FLASH_ATTR dht22_task(os_event_t *e){
-
-    DHT_DBG("dht22_task");
-
-    if(e->sig != SIG_DHT)
-        return;
-
+int ICACHE_FLASH_ATTR dht22_read(dht_data *read){
+        
+    DHT_DBG("dht22_read");
+       
     //put dht pin on output mode with pullup
     platform_gpio_mode(DHT_PIN,PLATFORM_GPIO_OUTPUT,PLATFORM_GPIO_PULLUP);
     
-
     uint64_t data;   
     os_memset(&data,0,sizeof(uint64_t));
 
     //init sequence
     platform_gpio_write(DHT_PIN,1);
     delay_ms(5);
-    platform_gpio_write(DHT_PIN,0); 
+    platform_gpio_write(DHT_PIN,0);
     delay_ms(1);
     platform_gpio_write(DHT_PIN,1);
     
@@ -76,7 +60,7 @@ static void ICACHE_FLASH_ATTR dht22_task(os_event_t *e){
     }
     if(timeout==0){
         DHT_DBG("\tACK start timeout");
-        return;
+        return 0;
     }
 
     //find ACK end
@@ -89,7 +73,7 @@ static void ICACHE_FLASH_ATTR dht22_task(os_event_t *e){
     }
     if(timeout==0){
         DHT_DBG("\tACK end timeout");
-       return;
+       return 0;
     }
 
     //continue to read data
@@ -151,7 +135,6 @@ static void ICACHE_FLASH_ATTR dht22_task(os_event_t *e){
    }
 
    //do the math
-
    
 
    float temp_p, hum_p;
@@ -162,7 +145,6 @@ static void ICACHE_FLASH_ATTR dht22_task(os_event_t *e){
    data_part[2] = ((uint8_t*)&data)[2];
    data_part[1] = ((uint8_t*)&data)[3];
    data_part[0] = ((uint8_t*)&data)[4];
-  
 
    int checksum = (data_part[0] + data_part[1] + data_part[2] + data_part[3]) & 0xFF;
     if (data_part[4] == checksum) {
@@ -176,30 +158,36 @@ static void ICACHE_FLASH_ATTR dht22_task(os_event_t *e){
         if (data_part[2] & 0x80)
             temp_p *= -1;
        
-        read.temp = temp_p;
-        read.hum = hum_p;
-        
+        read->temp = temp_p;
+        read->hum = hum_p;       
 
-    }
-    
-    
+#ifdef DHT_DEBUG_ON
+
+        char * buff = (char *)os_zalloc(64);
+
+        c_sprintf(buff,"%f",read->temp);
+        DHT_DBG("dht22_init temp : %s C",buff);
+
+        os_memset(buff,0,64);
+        c_sprintf(buff,"%f",read->hum);
+        DHT_DBG("dht22_init humidity : %s %%",buff);
+
+        os_free(buff);
+       
+#endif      
+       
+    }    
+
+    return 1;
 }
 
-void ICACHE_FLASH_ATTR dht22_timer_cb(){
-    system_os_post(1, SIG_DHT, NULL ); //schedule task to run
-}
 
 void ICACHE_FLASH_ATTR dht22_init(){
 
     DHT_DBG("dht22_init");
 
-    os_timer_disarm(&dht_timer);
-    os_timer_setfn(&dht_timer, (os_timer_func_t *)dht22_timer_cb, NULL);
-    os_timer_arm(&dht_timer, 5000, 1);
-
-    //Start os task
-    system_os_task(dht22_task, 1 ,taskQueue, 2);
-    system_os_post(1, SIG_DHT, NULL );
+    //nothing to do actually   
+   
 
 }
 

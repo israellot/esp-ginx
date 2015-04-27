@@ -7,17 +7,22 @@
  * ----------------------------------------------------------------------------
  */
 
-#ifndef __DHT22_H
-#define __DHT22_H
+#ifndef __SENSORS_H
+#define __SENSORS_H
 
-typedef struct{
+#include "bmp180.h"
+#include "dht22.h"
 
-	float temp;
-	float hum;
+typedef struct {
 
-} dht_data;
+	dht_data dht22;
+	bmp_data bmp180;
+
+} sensor_data;
 
 
-dht_data ICACHE_FLASH_ATTR dht22_read();
+void ICACHE_FLASH_ATTR sensors_init();
+void ICACHE_FLASH_ATTR sensors_get_data(sensor_data *return_data);
+
 
 #endif

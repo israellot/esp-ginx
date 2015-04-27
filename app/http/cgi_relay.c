@@ -15,8 +15,7 @@
 #include "platform.h"
 #include "user_config.h"
 #include "driver/relay.h"
-#include "driver/dht22.h"
-
+#include "sensor/sensors.h"
 
 #include "cgi.h"
 
@@ -146,12 +145,13 @@ int ICACHE_FLASH_ATTR http_dht_api_read(http_connection *c) {
 	http_SET_HEADER(c,HTTP_CONTENT_TYPE,JSON_CONTENT_TYPE);	
 	http_response_OK(c);
 
-	dht_data data = dht22_read();
-
+	sensor_data data;
+	sensors_get_data(&data);
+		
 	write_json_object_start(c);
-	write_json_pair_float(c,"temp",data.temp);
+	write_json_pair_float(c,"temp",data.dht22.temp);
 	write_json_list_separator(c);
-	write_json_pair_float(c,"hum",data.hum);	
+	write_json_pair_float(c,"hum",data.dht22.hum);	
 	write_json_object_end(c);
 
 			

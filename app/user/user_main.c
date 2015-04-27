@@ -20,7 +20,6 @@
 #include "ets_sys.h"
 #include "driver/uart.h"
 #include "driver/relay.h"
-#include "driver/dht22.h"
 #include "mem.h"
 
 #include "dns.h"
@@ -29,9 +28,7 @@
 #include "http/app.h"
 #include "mqtt/app.h"
 
-
-
-int ap_up=0;
+#include "sensor/sensors.h"
 
 #ifdef DEVELOP_VERSION
 os_timer_t heapTimer;
@@ -45,13 +42,14 @@ static void heapTimerCb(void *arg){
 #endif
 
 
+
+
 static void config_wifi(){
-     NODE_DBG("Putting AP UP");
+    NODE_DBG("Putting AP UP");
 
-    platform_key_led(0);
-
-    ap_up=1;
+    platform_key_led(0);    
     
+    wifi_station_set_auto_connect(1); 
     wifi_set_opmode(0x03); // station+ap mode                       
 
     struct softap_config config;
@@ -65,6 +63,7 @@ static void config_wifi(){
     config.channel=6;
     config.authmode=AUTH_OPEN;
     config.max_connection=1;
+    config.ssid_hidden=0;
 
     wifi_softap_set_config(&config);
 
@@ -86,15 +85,12 @@ void user_init(void)
 
     uint32_t size = flash_get_size_byte();
     NODE_DBG("Flash size %d",size);
-
-    wifi_set_opmode(0x01); // station mode
-    wifi_station_set_auto_connect(1); 
-
+   
     config_wifi();
 
+    sensors_init();
 	relay_init();   
-    mqtt_app_init();
-    dht22_init();
+    mqtt_app_init();    
     init_dns();
     init_http_server();
    

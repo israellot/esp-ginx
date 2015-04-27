@@ -261,7 +261,8 @@ int ICACHE_FLASH_ATTR write_json_int(http_connection *c,int value){
 
 int ICACHE_FLASH_ATTR write_json_float(http_connection *c,float value){
 	  
-	  char buf[20];	  
+	  char buf[20];
+	  os_memset(&buf,0,20);
 	  c_sprintf(buf,"%f",value);	 
 	  return http_write(c,buf);	 
 }

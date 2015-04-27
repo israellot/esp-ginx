@@ -33,6 +33,7 @@ SUBDIRS=    \
     mqtt \
     smart \
     util \
+    sensor \
     spiffs
 
 endif # } PDIR
@@ -78,6 +79,7 @@ COMPONENTS_eagle.app.v6 = \
     mqtt/mqtt.a \
     smart/smart.a \
     util/util.a \
+    sensor/sensors.a \
     spiffs/spiffs.a
 
 

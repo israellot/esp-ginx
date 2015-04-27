@@ -11,7 +11,8 @@
 #include "mqtt_msg.h"
 
 #include "driver/relay.h"
-#include "driver/dht22.h"
+
+#include "sensor/sensors.h"
 
 #include "serial_number.h"
 
@@ -21,7 +22,7 @@
 static os_timer_t mqtt_timer;
 static MQTT_Client mqtt_client;
 
-static os_timer_t dht22_read_timer;
+static os_timer_t sensor_read_timer;
 
 static uint8_t wifiStatus = STATION_IDLE, lastWifiStatus = STATION_IDLE;
 
@@ -45,7 +46,7 @@ static void mqtt_relay_change_cb(int id,int state){
 
 }
 
-void ICACHE_FLASH_ATTR mqtt_app_timer_cb(void *arg){
+static void ICACHE_FLASH_ATTR mqtt_app_timer_cb(void *arg){
 
 	
 	struct ip_info ipConfig;
@@ -73,7 +74,7 @@ void ICACHE_FLASH_ATTR mqtt_app_timer_cb(void *arg){
 
 
 
-void mqttConnectedCb(uint32_t *args)
+static void mqttConnectedCb(uint32_t *args)
 {
 	MQTT_Client* client = (MQTT_Client*)args;
 	MQTT_DBG("MQTT: Connected");
@@ -96,19 +97,19 @@ void mqttConnectedCb(uint32_t *args)
 
 }
 
-void mqttDisconnectedCb(uint32_t *args)
+static void mqttDisconnectedCb(uint32_t *args)
 {
 	MQTT_Client* client = (MQTT_Client*)args;
 	MQTT_DBG("MQTT: Disconnected");
 }
 
-void mqttPublishedCb(uint32_t *args)
+static void mqttPublishedCb(uint32_t *args)
 {
 	MQTT_Client* client = (MQTT_Client*)args;
 	MQTT_DBG("MQTT: Published");
 }
 
-void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len)
+static void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len)
 {
 	char *topicBuf = (char*)os_zalloc(topic_len+1),
 			*dataBuf = (char*)os_zalloc(data_len+1);
@@ -158,21 +159,27 @@ void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const cha
 	
 }
 
-void ICACHE_FLASH_ATTR dht22_read_timer_cb(void *arg){
-
-	dht_data read = dht22_read();
+static void ICACHE_FLASH_ATTR sensor_read_timer_cb(void *arg){
 
 	char * buff = (char *)os_zalloc(64);
 
-	c_sprintf(buff,"%f",read.temp);
+	sensor_data data;
+	sensors_get_data(&data);	
 
+	c_sprintf(buff,"%f",data.dht22.temp);
 	MQTT_Publish(&mqtt_client, "temperature/"SERIAL_NUMBER, buff, strlen(buff), 0, 1);
 
-	c_sprintf(buff,"%f",read.hum);
-
+	os_memset(buff,0,64);
+	c_sprintf(buff,"%f",data.dht22.hum);
 	MQTT_Publish(&mqtt_client, "humidity/"SERIAL_NUMBER, buff, strlen(buff), 0, 1);
 
+	os_memset(buff,0,64);
+	c_sprintf(buff,"%d",data.bmp180.press);
+	MQTT_Publish(&mqtt_client, "pressure/"SERIAL_NUMBER, buff, strlen(buff), 0, 1);
+
 	os_free(buff);
+
+
 
 }
 
@@ -205,10 +212,10 @@ void ICACHE_FLASH_ATTR mqtt_app_init(){
 	os_timer_setfn(&mqtt_timer, (os_timer_func_t *)mqtt_app_timer_cb, NULL);
 	os_timer_arm(&mqtt_timer, 2000, 1);
 
-	//arm dht22 read timer
-	os_memset(&dht22_read_timer,0,sizeof(os_timer_t));
-	os_timer_disarm(&dht22_read_timer);
-	os_timer_setfn(&dht22_read_timer, (os_timer_func_t *)dht22_read_timer_cb, NULL);
-	os_timer_arm(&dht22_read_timer, 5000, 1);
+	//arm sensor read timer
+	os_memset(&sensor_read_timer,0,sizeof(os_timer_t));
+	os_timer_disarm(&sensor_read_timer);
+	os_timer_setfn(&sensor_read_timer, (os_timer_func_t *)sensor_read_timer_cb, NULL);
+	os_timer_arm(&sensor_read_timer, 5000, 1);
 
 }
