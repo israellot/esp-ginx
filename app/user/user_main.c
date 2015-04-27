@@ -87,13 +87,17 @@ void user_init(void)
     NODE_DBG("Flash size %d",size);
    
     config_wifi();
-
-    sensors_init();
+    
 	relay_init();   
-    mqtt_app_init();    
+    
     init_dns();
     init_http_server();
-   
+
+    //uncomment to send data to mqtt broker
+    //mqtt_app_init();    
+
+    //uncomment if you have sensors intalled
+    //sensors_init();
 
     #ifdef DEVELOP_VERSION
 
