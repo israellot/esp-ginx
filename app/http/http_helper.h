@@ -77,7 +77,5 @@ int ICACHE_FLASH_ATTR http_reset_buffer(http_connection *c);
 
 
 
-
-
 #endif
 
