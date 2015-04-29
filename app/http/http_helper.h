@@ -75,23 +75,7 @@ int ICACHE_FLASH_ATTR http_SET_HEADER(http_connection *c,const char *header,cons
 int ICACHE_FLASH_ATTR http_end_headers(http_connection *c);
 int ICACHE_FLASH_ATTR http_reset_buffer(http_connection *c);
 
-//json
-int ICACHE_FLASH_ATTR write_json_object_start(http_connection *c);
-int ICACHE_FLASH_ATTR write_json_object_end(http_connection *c);
-int ICACHE_FLASH_ATTR write_json_object_separator(http_connection *c);
-int ICACHE_FLASH_ATTR write_json_list_separator(http_connection *c);
-int ICACHE_FLASH_ATTR write_json_array_start(http_connection *c);
-int ICACHE_FLASH_ATTR write_json_array_end(http_connection *c);
-int ICACHE_FLASH_ATTR write_json_int(http_connection *c,int value);
-int ICACHE_FLASH_ATTR write_json_float(http_connection *c,float value);
-int ICACHE_FLASH_ATTR write_json_bool(http_connection *c,int value);
-int ICACHE_FLASH_ATTR write_json_string(http_connection *c,const char *s);
-int ICACHE_FLASH_ATTR write_json_key(http_connection *c,const char *key);
-int ICACHE_FLASH_ATTR write_json_pair(http_connection *c,const char *key,const char *value);
-int ICACHE_FLASH_ATTR write_json_pair_string(http_connection *c,const char *key,const char *value);
-int ICACHE_FLASH_ATTR write_json_pair_int(http_connection *c,const char *key,int value);
-int ICACHE_FLASH_ATTR write_json_pair_float(http_connection *c,const char *key,float value);
-int ICACHE_FLASH_ATTR write_json_pair_bool(http_connection *c,const char *key,int value);
+
 
 
 

@@ -270,6 +270,7 @@ $(function(){
 				}
 			});
 
+		var status_internet=$('#status-internet');
 		status_internet.text("");
 
 	}

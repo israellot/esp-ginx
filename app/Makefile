@@ -89,11 +89,11 @@ LINKFLAGS_eagle.app.v6 = \
     -T$(LD_FILE)   \
 	-Wl,--no-check-sections	\
     -u call_user_start	\
-	-Wl,-static						\
-	-Wl,--start-group					\
-	-lc					\
-	-lgcc					\
-	-lhal					\
+	-Wl,-static	\
+	-Wl,--start-group	\
+	-lc	\
+	-lgcc	\
+	-lhal	\
 	-lphy	\
 	-lpp	\
 	-lnet80211	\
@@ -102,7 +102,7 @@ LINKFLAGS_eagle.app.v6 = \
 	-ljson	\
 	-lsmartconfig	\
 	-lssl	\
-	$(DEP_LIBS_eagle.app.v6)					\
+	$(DEP_LIBS_eagle.app.v6)	\
 	-Wl,--end-group
 
 DEPENDS_eagle.app.v6 = \

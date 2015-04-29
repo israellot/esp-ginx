@@ -27,8 +27,7 @@
 #include "http_helper.h"
 #include "http_client.h"
 
-#include "json/jsmn.h"
-#include "json/json.h"
+#include "json/cJson.h"
 
 
 
@@ -45,31 +44,25 @@ int ICACHE_FLASH_ATTR http_relay_api_status(http_connection *c) {
 	http_SET_HEADER(c,HTTP_CONTENT_TYPE,JSON_CONTENT_TYPE);	
 	http_response_OK(c);
 
-	write_json_object_start(c);
-	write_json_key(c,"relays");
-	write_json_object_separator(c);
-	write_json_array_start(c);
+	cJSON *root, *relays, *fld;
 
+	root = cJSON_CreateObject(); 
+	cJSON_AddItemToObject(root, "relays", relays = cJSON_CreateArray());
+	
 	int i;
 	for(i=0;i<relay_count();i++){
 
-		if(i>0)
-			write_json_list_separator(c);
-
-		write_json_object_start(c);
-		write_json_pair_int(c,"relay",i);
-		write_json_list_separator(c);
-		write_json_pair_int(c,"state",relay_get_state(i));
-		write_json_object_end(c);
-
+		cJSON_AddItemToArray(relays,fld=cJSON_CreateObject());
+		cJSON_AddNumberToObject(fld,"relay",i);
+		cJSON_AddNumberToObject(fld,"state",relay_get_state(i));
 		
 	}
-	
-	write_json_array_end(c);
-	write_json_object_end(c);
-	
 
-			
+	http_write_json(c,root);	
+
+	//delete json struct
+	cJSON_Delete(root);
+
 	return HTTPD_CGI_DONE;
 
 
@@ -85,25 +78,24 @@ int ICACHE_FLASH_ATTR http_relay_api_toggle(http_connection *c) {
 	if(c->state <HTTPD_STATE_BODY_END)
 		return HTTPD_CGI_MORE; 
 
+	//parse json
+	cJSON * root = cJSON_Parse(c->body.data);
+	if(root==NULL) goto badrequest;
 	
-	int ret = json_count_token(c->body.data,c->body.len);
-	
-	jsonPair fields[1]={
-		{
-			.key="relay",
-			.value=NULL
-		}
-	};
+	cJSON * relay = cJSON_GetObjectItem(root,"relay");
+	if(relay==NULL) goto badrequest;
 
-	if(json_parse(&fields[0],1,c->body.data,c->body.len)){
-		
-		int relayNumber = atoi(fields[0].value);	
 
-		if(relayNumber<0 || relayNumber >=relay_count()){
-			http_response_BAD_REQUEST(c);
-			NODE_DBG("Wrong relay");		
-			return HTTPD_CGI_DONE;
-		}
+	int relayNumber = relay->valueint;
+	cJSON_Delete(root);	
+
+	if(relayNumber<0 || relayNumber >=relay_count()){
+		http_response_BAD_REQUEST(c);
+		NODE_DBG("Wrong relay");		
+		return HTTPD_CGI_DONE;
+	}
+	else{
+		//valid relay
 
 		unsigned status = relay_get_state(relayNumber);
 		status = relay_toggle_state(relayNumber);
@@ -112,23 +104,24 @@ int ICACHE_FLASH_ATTR http_relay_api_toggle(http_connection *c) {
 		http_SET_HEADER(c,HTTP_CONTENT_TYPE,JSON_CONTENT_TYPE);	
 		http_response_OK(c);
 
-		write_json_object_start(c);
-		write_json_pair_int(c,"relay",relayNumber);
-		write_json_list_separator(c);
-		write_json_pair_int(c,"state",status);
-		write_json_object_end(c);
+
+		//create json
+		root = cJSON_CreateObject();
+		cJSON_AddNumberToObject(root,"relay",relayNumber);
+		cJSON_AddNumberToObject(root,"state",status);
+
+		http_write_json(c,root);
+
+		//delete json struct
+		cJSON_Delete(root);
 
 		return HTTPD_CGI_DONE;
 
-	}
-	else{
-		http_response_BAD_REQUEST(c);		
-		return HTTPD_CGI_DONE;
-	}
+	}	
 
-	http_response_BAD_REQUEST(c);		
+badrequest:
+	http_response_BAD_REQUEST(c);
 	return HTTPD_CGI_DONE;
-
 
 }
 
@@ -149,13 +142,17 @@ int ICACHE_FLASH_ATTR http_dht_api_read(http_connection *c) {
 	sensor_data data;
 	sensors_get_data(&data);
 		
-	write_json_object_start(c);
-	write_json_pair_float(c,"temp",data.dht22.temp);
-	write_json_list_separator(c);
-	write_json_pair_float(c,"hum",data.dht22.hum);	
-	write_json_object_end(c);
+	//create json
+	cJSON *root = cJSON_CreateObject();
+	cJSON_AddNumberToObject(root,"temp",data.dht22.temp);
+	cJSON_AddNumberToObject(root,"hum",data.dht22.hum);
 
-			
+	//write json
+	http_write_json(c,root);
+
+	//delete json struct
+	cJSON_Delete(root);
+				
 	return HTTPD_CGI_DONE;
 
 

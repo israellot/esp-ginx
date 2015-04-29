@@ -25,8 +25,7 @@
 #include "http_helper.h"
 #include "http_client.h"
 
-#include "json/jsmn.h"
-#include "json/json.h"
+#include "json/cJson.h"
 
 //WiFi access point data
 typedef struct {
@@ -116,29 +115,24 @@ int ICACHE_FLASH_ATTR http_wifi_api_get_status(http_connection *c) {
 
 		uint8_t c_status = wifi_station_get_connect_status();
 
-		write_json_object_start(c);
-		write_json_pair_bool(c,"scanning",wifi_status.scanning);
-		write_json_list_separator(c);
-		write_json_pair_string(c,"ssid",(const char *)wifi_status.station_config.ssid);
-		write_json_list_separator(c);
-		write_json_pair_int(c,"mode",wifi_get_opmode());
-		write_json_list_separator(c);
-		write_json_pair_int(c,"station_status",c_status);
-		write_json_list_separator(c);
+		cJSON *root = cJSON_CreateObject();
+		cJSON_AddBoolToObject(root,"scanning",wifi_status.scanning);
+		cJSON_AddStringToObject(root,"ssid",(const char *)wifi_status.station_config.ssid);
+		cJSON_AddNumberToObject(root,"mode",wifi_get_opmode());
+		cJSON_AddNumberToObject(root,"station_status",c_status);		
 
 		if(c_status==5){ //got ip
 			struct ip_info ip;
 			wifi_get_ip_info(0x0,&ip);
 			char *ip_str = ipaddr_ntoa(&ip.ip);
-			write_json_pair_string(c,"ip",ip_str);
+			cJSON_AddStringToObject(root,"ip",ip_str);
 		}
 		else{
-			write_json_pair_string(c,"ip","");
+			cJSON_AddStringToObject(root,"ip","");
 		}
 
-		write_json_object_end(c);
-		
-		NODE_DBG("\tJson done");
+		http_write_json(c,root);
+		cJSON_Delete(root);
 		
 		status->state=99;
 		return HTTPD_CGI_MORE;		
@@ -278,37 +272,31 @@ int ICACHE_FLASH_ATTR http_wifi_api_scan(http_connection *c) {
 			//clear timer
 			os_timer_disarm(&status->timer);
 
-			NODE_DBG("Scan complete %d",status->ap_index);			
+			NODE_DBG("Scan complete %d",status->ap_index);
 
+			//create json
+			cJSON *root = cJSON_CreateObject();
+			cJSON_AddNumberToObject(root,"ap_count",wifi_get_opmode());
 
-			write_json_object_start(c);
-			write_json_pair_int(c,"ap_count",wifi_status.scan_result.ap_count);
-			write_json_list_separator(c);
-			write_json_key(c,"ap");
-			write_json_object_separator(c);
-			write_json_array_start(c);
+			cJSON * array;
+			cJSON * item;
+			cJSON_AddItemToObject(root, "ap", array = cJSON_CreateArray());
 
 			int i;
 			for(i=0;i< wifi_status.scan_result.ap_count;i++){
 
-				write_json_object_start(c);
-
-				write_json_pair_string(c,"ssid",(const char *)wifi_status.scan_result.ap[i]->ssid);
-				write_json_list_separator(c);
-				write_json_pair_int(c,"rssi",wifi_status.scan_result.ap[i]->rssi);
-				write_json_list_separator(c);
-				write_json_pair_int(c,"enc",wifi_status.scan_result.ap[i]->enc);
-				write_json_list_separator(c);
-				write_json_pair_int(c,"channel",wifi_status.scan_result.ap[i]->channel);
-				write_json_object_end(c);
-
-				if(i < wifi_status.scan_result.ap_count -1 )
-					write_json_list_separator(c);
+				cJSON_AddItemToArray(array,item=cJSON_CreateObject());
+				cJSON_AddStringToObject(item,"ssid",(const char *)wifi_status.scan_result.ap[i]->ssid);
+				cJSON_AddNumberToObject(item,"rssi",wifi_status.scan_result.ap[i]->rssi);
+				cJSON_AddNumberToObject(item,"enc",wifi_status.scan_result.ap[i]->enc);
+				cJSON_AddNumberToObject(item,"channel",wifi_status.scan_result.ap[i]->channel);
 
 			}
 
-			write_json_array_end(c);
-			write_json_object_end(c);
+			http_write_json(c,root);	
+
+			//delete json struct
+			cJSON_Delete(root);
 
 			status->state=99; 		
 			return HTTPD_CGI_DONE;
@@ -368,54 +356,39 @@ int ICACHE_FLASH_ATTR http_wifi_api_connect_ap(http_connection *c){
 		status->state=1;
 		c->cgi.data=status;
 		
-		jsonPair fields[2]={
-			{
-				.key="ssid",
-				.value=NULL
-			},
-			{
-				.key="pwd",
-				.value=NULL
-			}
-		};
 
-		if(json_parse(&fields[0],2,c->body.data,c->body.len)){
+		//parse json and validate
+		cJSON * root = cJSON_Parse(c->body.data);
+		if(root==NULL) goto badrequest;
+		
+		cJSON * ssid = cJSON_GetObjectItem(root,"ssid");
+		if(ssid==NULL) goto badrequest;
+		else if(ssid->type != cJSON_String) goto badrequest;
 
-			char *ssid_body=fields[0].value;
-			char *pwd_body=fields[1].value;
+		cJSON * pwd = cJSON_GetObjectItem(root,"pwd");
+		if(pwd==NULL) goto badrequest;
+		else if(pwd->type!=cJSON_String) goto badrequest;
+		
+		//parse ok
+		strncpy(status->ssid,ssid->valuestring,32);
+		strncpy(status->pwd,pwd->valuestring,64);
 
-			if(ssid_body==NULL || pwd_body==NULL){
-				http_response_BAD_REQUEST(c);
-				status->state=99;	
-				return HTTPD_CGI_MORE;		
-			}
-			
-			strncpy(status->ssid,ssid_body,32);
-			strncpy(status->pwd,pwd_body,64);
+		//set timer to connect 
+		os_timer_disarm(&status->timer);
+		os_timer_setfn(&status->timer, http_execute_cgi, c);
+		os_timer_arm(&status->timer, 10, 0);
 
-			//set timer to check status
-			os_timer_disarm(&status->timer);
-			os_timer_setfn(&status->timer, http_execute_cgi, c);
-			os_timer_arm(&status->timer, 10, 0);
+		return HTTPD_CGI_MORE;
 
-			return HTTPD_CGI_MORE;
-		}
-		else{
-			http_response_BAD_REQUEST(c);
-			status->state=99;	
-			return HTTPD_CGI_MORE;
-		}	
+	
 
 	}
 	else if(status->state==1){
 			NODE_DBG("http_wifi_api_connect_ap status %d",status->state);
 			//try connect
 
-			if(strlen(status->ssid)>32 || strlen(status->pwd)>64){
-				http_response_BAD_REQUEST(c);
-				status->state=99;
-				return HTTPD_CGI_MORE;
-			}
+			if(strlen(status->ssid)>32 || strlen(status->pwd)>64)
+				goto badrequest;
 
 			NODE_DBG("http_wifi_api_connect_ap ssid %s",status->ssid);
 			NODE_DBG("http_wifi_api_connect_ap pwd %s",status->pwd);
@@ -468,21 +441,24 @@ int ICACHE_FLASH_ATTR http_wifi_api_connect_ap(http_connection *c){
 			http_SET_HEADER(c,HTTP_CONTENT_TYPE,JSON_CONTENT_TYPE);
 			http_response_OK(c);
 
-			write_json_object_start(c);
-			write_json_pair_int(c,"status",c_status);
-			write_json_list_separator(c);
-
+			//create json
+			cJSON *root = cJSON_CreateObject();
+			cJSON_AddNumberToObject(root,"status",c_status);			
+			
 			if(c_status==5){ //got ip
 				struct ip_info ip;
 				wifi_get_ip_info(0x0,&ip);
 				char *ip_str = ipaddr_ntoa(&ip.ip);
-				write_json_pair_string(c,"ip",ip_str);
+				cJSON_AddStringToObject(root,"ip",ip_str);
 			}
 			else{
-				write_json_pair_string(c,"ip","");
+				cJSON_AddStringToObject(root,"ip","");
 			}
 
-			write_json_object_end(c);	
+			http_write_json(c,root);
+
+			//delete json struct
+			cJSON_Delete(root);	
 
 			status->state=99;
 			
@@ -496,7 +472,13 @@ int ICACHE_FLASH_ATTR http_wifi_api_connect_ap(http_connection *c){
 		os_free(c->cgi.data);
 		return HTTPD_CGI_DONE;
 	}
+
+badrequest:
+	http_response_BAD_REQUEST(c);
+	status->state=99;	
+	return HTTPD_CGI_MORE;
 	
+	//shut up compiler
 	return HTTPD_CGI_DONE;
 }
 
@@ -576,10 +558,15 @@ int ICACHE_FLASH_ATTR http_wifi_api_check_internet(http_connection *c){
 		NODE_DBG("http_wifi_api_check_internet 2");
 
 		status->state=99;	
-			
-		write_json_object_start(c);
-		write_json_pair_int(c,"status",1);
-		write_json_object_end(c);		
+		
+		//create json
+		cJSON *root = cJSON_CreateObject();
+		cJSON_AddNumberToObject(root,"status",1);		
+
+		http_write_json(c,root);
+		//delete json struct
+		cJSON_Delete(root);	
+	
 
 		return HTTPD_CGI_MORE;
 
@@ -588,9 +575,13 @@ int ICACHE_FLASH_ATTR http_wifi_api_check_internet(http_connection *c){
 		//DNS NOT FOUND
 		status->state=99;	
 			
-		write_json_object_start(c);
-		write_json_pair_int(c,"status",0);
-		write_json_object_end(c);		
+		//create json
+		cJSON *root = cJSON_CreateObject();
+		cJSON_AddNumberToObject(root,"status",0);		
+
+		http_write_json(c,root);
+		//delete json struct
+		cJSON_Delete(root);	
 
 		return HTTPD_CGI_MORE;
 	}

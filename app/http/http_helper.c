@@ -23,6 +23,8 @@
 #include "http_process.h"
 #include "http_helper.h"
 
+#include "json/cJson.h"
+
 //Struct to keep extension->mime data in
 typedef struct {
 	const char *ext;
@@ -58,6 +60,15 @@ int ICACHE_FLASH_ATTR http_reset_buffer(http_connection *c){
 	return 1;
 }
 
+int ICACHE_FLASH_ATTR http_write_json(http_connection *c,cJSON *root){
+
+	char * json_string;
+	json_string = cJSON_Print(root);
+
+	http_write(c,json_string);
+	os_free(json_string);
+
+}
 
 
 int ICACHE_FLASH_ATTR http_end_line(http_connection *c){
@@ -232,100 +243,4 @@ const char ICACHE_FLASH_ATTR *http_get_mime(char *url) {
 	while (mimeTypes[i].ext!=NULL && os_strcmp(ext, mimeTypes[i].ext)!=0) i++;
 	return mimeTypes[i].mimetype;
 }
-
-//json 
-int ICACHE_FLASH_ATTR write_json_object_start(http_connection *c){
-	return http_write(c,"{");
-}
-int ICACHE_FLASH_ATTR write_json_object_end(http_connection *c){
-	return http_write(c,"}");
-}
-int ICACHE_FLASH_ATTR write_json_list_separator(http_connection *c){
-	return http_write(c,",");
-}
-int ICACHE_FLASH_ATTR write_json_object_separator(http_connection *c){
-	return http_write(c,":");
-}
-int ICACHE_FLASH_ATTR write_json_array_start(http_connection *c){
-	return http_write(c,"[");
-}
-int ICACHE_FLASH_ATTR write_json_array_end(http_connection *c){
-	return http_write(c,"]");
-}
-
-int ICACHE_FLASH_ATTR write_json_int(http_connection *c,int value){
-	  
-	  char buf[10];	  
-	  os_sprintf(buf,"%d",value);
-	  return http_write(c,buf);	 
-}
-
-int ICACHE_FLASH_ATTR write_json_float(http_connection *c,float value){
-	  
-	  char buf[20];
-	  os_memset(&buf,0,20);
-	  c_sprintf(buf,"%f",value);	 
-	  return http_write(c,buf);	 
-}
- 
-
-int ICACHE_FLASH_ATTR write_json_bool(http_connection *c,int value){
-	  
-	  if(value)
-	  	return http_write(c,"true");	 
-	  else
-	  	return http_write(c,"false");	
-}
-
-int ICACHE_FLASH_ATTR write_json_string(http_connection *c,const char *s){
-
-	http_write(c,"\"");
-	if(s!=NULL){
-		while(*s!='\0'){
-			if(*s=='"')
-				http_write(c,"\\");
-			http_nwrite(c,s,1);
-			s++;
-		}
-	}
-	return http_write(c,"\"");	
-}
-
-int ICACHE_FLASH_ATTR write_json_key(http_connection *c,const char *key){
-
-	return http_write(c,"\"") &&
-	http_write(c,key) &&
-	http_write(c,"\"");
-}
-
-int ICACHE_FLASH_ATTR write_json_pair(http_connection *c,const char *key,const char *value){
-
-	return write_json_key(c,key) &&
-	write_json_object_separator(c) &&
-	http_write(c,value);	
-}
-
-int ICACHE_FLASH_ATTR write_json_pair_string(http_connection *c,const char *key,const char *value){
-	return write_json_key(c,key) &&
-	write_json_object_separator(c) &&
-	write_json_string(c,value);	
-} 
-
-int ICACHE_FLASH_ATTR write_json_pair_int(http_connection *c,const char *key,int value){
-	return write_json_key(c,key) &&
-	write_json_object_separator(c) &&
-	write_json_int(c,value);	
-} 
-
-int ICACHE_FLASH_ATTR write_json_pair_float(http_connection *c,const char *key,float value){
-	return write_json_key(c,key) &&
-	write_json_object_separator(c) &&
-	write_json_float(c,value);	
-} 
-
-int ICACHE_FLASH_ATTR write_json_pair_bool(http_connection *c,const char *key,int value){
-	return write_json_key(c,key) &&
-	write_json_object_separator(c) &&
-	write_json_bool(c,value);	
-} 
 
