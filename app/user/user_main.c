@@ -14,6 +14,8 @@
 #include "c_stdio.h"
 #include "flash_api.h"
 
+#include "osapi.h"
+
 #include "user_interface.h"
 #include "user_config.h"
 

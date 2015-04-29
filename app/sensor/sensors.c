@@ -47,7 +47,7 @@ static void ICACHE_FLASH_ATTR sensor_read_task(os_event_t *e){
 }
 
 static void ICACHE_FLASH_ATTR sensor_read_timer_cb(void *arg){
-	system_os_post(SENSOR_TASK_PRIORITY, SENSOR_TASK_SIG, NULL );
+	system_os_post(SENSOR_TASK_PRIORITY, SENSOR_TASK_SIG, (os_param_t) NULL );
 }
 
 void ICACHE_FLASH_ATTR sensors_init(){
@@ -63,7 +63,7 @@ void ICACHE_FLASH_ATTR sensors_init(){
 
 	//Start os task
     system_os_task(sensor_read_task, SENSOR_TASK_PRIORITY ,sensor_read_task_queue, SENSOR_TASK_QUEUE_LEN);
-    system_os_post(SENSOR_TASK_PRIORITY, SENSOR_TASK_SIG, NULL );
+    system_os_post(SENSOR_TASK_PRIORITY, SENSOR_TASK_SIG, (os_param_t) NULL );
 
 	//arm sensor read timer
 	os_memset(&sensor_read_timer,0,sizeof(os_timer_t));

@@ -4,20 +4,14 @@
 #include "c_string.h"
 #include "user_interface.h"
 
-// const char *lua_init_value = "print(\"Hello world\")";
-const char *lua_init_value = "@init.lua";
+
 
 // int c_abs(int x){
 // 	return x>0?x:0-x;
 // }
 // void c_exit(int e){
 // }
-const char *c_getenv(const char *__string){
-	if (c_strcmp(__string, "LUA_INIT") == 0){
-		return lua_init_value;
-	}
-	return NULL;
-}
+
 
 // make sure there is enough memory before real malloc, otherwise malloc will panic and reset
 // void *c_malloc(size_t __size){

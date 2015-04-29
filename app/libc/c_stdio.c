@@ -6,9 +6,6 @@ int c_stdin = 999;
 int c_stdout = 1000;
 int c_stderr = 1001;
 
-#if defined( LUA_NUMBER_INTEGRAL )
-
-#else
 
 /*
 File: printf.c
@@ -449,4 +446,4 @@ void nprintf(const char *s,size_t size)
 
 }
 
-#endif
+
