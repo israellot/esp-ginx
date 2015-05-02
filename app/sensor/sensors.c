@@ -20,6 +20,9 @@
 #include "sensors.h"
 #include "bmp180.h"
 #include "dht22.h"
+#include "ds18b20.h"
+
+#define DS18B20_PIN 4
 
 #define SENSOR_TASK_QUEUE_LEN 1
 #define SENSOR_TASK_PRIORITY 1
@@ -58,6 +61,7 @@ void ICACHE_FLASH_ATTR sensors_init(){
 	os_memset(&global_sensor_data,0,sizeof(sensor_data));
 
 	//init sensors
+    ds18b20_init();
     dht22_init();
     bmp180_init(); 
 
