@@ -196,13 +196,7 @@ print_number(cJSON *item)
 
         if (str) {
             //if (fabs(floor(d) - d) <= DBL_EPSILON && fabs(d) < 1.0e60) {
-            if (fabs(d) < 1.0e60) {
-            	sprintf(str, "%.0f", d);
-            } else if (fabs(d) < 1.0e-6 || fabs(d) > 1.0e9) {
-                sprintf(str, "%e", d);
-            } else {
-            	sprintf(str, "%f", d);
-            }
+            sprintf(str, "%f", d);
         }
     }
 
