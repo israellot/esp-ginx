@@ -31,6 +31,43 @@
 
 #define delay_ms(ms) os_delay_us(1000*ms)
 
+static void ICACHE_FLASH_ATTR dht22_dottedString(char *str, int16_t number)
+{
+    uint8_t len, num_start_idx=0;
+    
+    c_sprintf(str,"%d", number);
+    len = strlen(str);
+    
+    if(str[0]== '-')
+    {
+        num_start_idx = 1;
+    }
+   
+    switch(len-num_start_idx)
+    {
+        case 1:
+            str[num_start_idx+1] = '.';
+            str[num_start_idx+2] = str[num_start_idx];
+            str[num_start_idx] = '0';
+            str[num_start_idx+3] = 0;
+            break;
+            
+        case 2:
+            str[num_start_idx+2] = str[num_start_idx+1];
+            str[num_start_idx+1] = '.';
+            str[num_start_idx+3] = 0;
+            break;
+            
+        case 3:
+            str[num_start_idx+3] = str[num_start_idx+2];
+            str[num_start_idx+2] = '.';
+            str[num_start_idx+4] = 0;
+            break;
+            
+    }
+    
+}
+
 int ICACHE_FLASH_ATTR dht22_read(dht_data *read){
         
     DHT_DBG("dht22_read");
@@ -152,12 +189,14 @@ int ICACHE_FLASH_ATTR dht22_read(dht_data *read){
         // yay! checksum is valid 
         
         hum_p = data_part[0] * 256 + data_part[1];
+        dht22_dottedString(read->hum_string, (int16_t) hum_p);
         hum_p /= 10;
 
         temp_p = (data_part[2] & 0x7F)* 256 + data_part[3];
-        temp_p /= 10.0;
         if (data_part[2] & 0x80)
             temp_p *= -1;
+        dht22_dottedString(read->temp_string, (int16_t) temp_p);
+        temp_p /= 10.0;
        
         read->temp = temp_p;
         read->hum = hum_p;       
