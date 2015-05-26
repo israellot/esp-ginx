@@ -1,8 +1,6 @@
 Wifi Cleanflight configurator
 --------
 
-##Wifi Cleanflight configurator
-
 This project was inspired by https://github.com/israellot/esp-ginx and https://github.com/beckdac/ESP8266-transparent-bridge
 
 At this point it allows connectivity between Naze32 Board and any Wifi-enabled device
