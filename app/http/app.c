@@ -69,3 +69,7 @@ void ICACHE_FLASH_ATTR init_http_server(){
 	init_ws_server();
 
 }
+
+void ICACHE_FLASH_ATTR on_new_data() {
+	ws_app_on_new_data();
+}

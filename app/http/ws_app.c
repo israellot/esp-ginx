@@ -23,6 +23,7 @@
 #include "http_process.h"
 #include "websocket.h"
 #include "http_websocket_server.h"
+#include "ws_app.h"
 
 #define HTTP_PORT 80
 
@@ -39,6 +40,7 @@ struct ws_app_context {
 	int packet_size;
 };
 
+struct ws_app_context* client = 0;
 
 static void ICACHE_FLASH_ATTR ws_app_send_packet(struct ws_app_context *context){
 
@@ -74,31 +76,55 @@ static void ICACHE_FLASH_ATTR ws_app_send_packet(struct ws_app_context *context)
 
 }
 
+#define MAX_UARTBUFFER (256)
+static uint8 uartbuffer[MAX_UARTBUFFER];
+
+
+void ICACHE_FLASH_ATTR ws_app_on_new_data()
+{
+	if (!client)
+		return;
+
+	char c;
+	uint16_t dataSize = 0;
+	while (uart_getc(&c) && dataSize < MAX_UARTBUFFER)
+	{
+		uartbuffer[dataSize++] = c;
+	}
+
+	if (dataSize > 0)
+	{
+		http_ws_push_bin(client->conn,uartbuffer,dataSize);	
+	}
+}
+
 
 static int  ICACHE_FLASH_ATTR ws_app_msg_sent(http_connection *c){
 
-	NODE_DBG("Webscoket app msg sent %p",c);
+	// NODE_DBG("Webscoket app msg sent %p",c);
 
-	struct ws_app_context *context = (struct ws_app_context*)c->reverse;
+	// struct ws_app_context *context = (struct ws_app_context*)c->reverse;
 
-	if(context!=NULL){
+	// if(context!=NULL){
 
-		NODE_DBG("\tcontext found %p",context);
+	// 	NODE_DBG("\tcontext found %p",context);
 
-		context->waiting_sent=0;
+	// 	context->waiting_sent=0;
 
-		if(context->stream_data==1){
-			//no requet to stop made, send next packet
-			ws_app_send_packet(context);
-		}
+	// 	if(context->stream_data==1){
+	// 		//no requet to stop made, send next packet
+	// 		ws_app_send_packet(context);
+	// 	}
 
-	}
+	// }
 
 }
 
 static int  ICACHE_FLASH_ATTR ws_app_client_disconnected(http_connection *c){
 
 	NODE_DBG("Webscoket app client disconnected %p",c);
+
+	client = 0;
 
 	//clean up
 	struct ws_app_context *context = (struct ws_app_context*)c->reverse;
@@ -122,6 +148,8 @@ static int  ICACHE_FLASH_ATTR ws_app_client_connected(http_connection *c){
 	context->conn=c;
 	c->reverse = context; //so we may find it on callbacks
 	
+	client = context;
+
 	NODE_DBG("\tcontext %p",context);
 }
 
@@ -139,41 +167,7 @@ static int  ICACHE_FLASH_ATTR ws_app_msg_received(http_connection *c){
 	if(msg->SIZE <=0)
 		return HTTP_WS_CGI_MORE; //just ignore and move on
 
-	char * s = msg->DATA;
-	char *last = s+msg->SIZE;
-
-	//make a null terminated string
-	char * str = (char *)os_zalloc(msg->SIZE + 1);
-	os_memcpy(str,s,msg->SIZE);
-	str[msg->SIZE]=0;
-
-	NODE_DBG("\tmsg: %s",str);
-	
-	if(strstr(str,WS_APP_STREAM_START)==str){
-		//request to start stream
-		NODE_DBG("\trequest stream start");
-
-		char * s= str + strlen(WS_APP_STREAM_START);		
-
-		int pSize = atoi(s);
-
-		NODE_DBG("\trequest stream packet size %d",pSize);
-
-		if(pSize>0 && pSize <= 1024)
-		{					
-			context->packet_requested_size=pSize;
-			context->stream_data =1;
-			if(!context->waiting_sent)
-				ws_app_send_packet(context); //send fisrt pkt
-		}
-
-	}
-	else if(strstr(str,WS_APP_STREAM_STOP)==str){
-		NODE_DBG("\trequest stream stop");
-		context->stream_data=0;
-	}
-
-	os_free(str);
+	uart0_tx_buffer(msg->DATA, msg->SIZE);
 
 	return HTTP_WS_CGI_MORE;
 

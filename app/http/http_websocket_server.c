@@ -118,7 +118,7 @@ int ICACHE_FLASH_ATTR http_ws_handle_connect(http_connection *c) {
 	Base64encode(base64Digest,(const char*)digest,20);
 
 	//accept the handshake
-	http_SET_HEADER(c,HTTP_UPGRADE,"WebSocket");
+	http_SET_HEADER(c,HTTP_UPGRADE,"websocket");
 	http_SET_HEADER(c,HTTP_CONNECTION,"Upgrade");
 	
 	http_SET_HEADER(c,HTTP_WEBSOCKET_ACCEPT,base64Digest);
