@@ -167,11 +167,11 @@ static void ICACHE_FLASH_ATTR sensor_read_timer_cb(void *arg){
 	sensors_get_data(&data);	
 
 	c_sprintf(buff,"%f",data.dht22.temp);
-	MQTT_Publish(&mqtt_client, "temperature/"SERIAL_NUMBER, buff, strlen(buff), 0, 1);
+	MQTT_Publish(&mqtt_client, "temperature/"SERIAL_NUMBER, data.dht22.temp_string, strlen(data.dht22.temp_string), 0, 1);
 
 	os_memset(buff,0,64);
 	c_sprintf(buff,"%f",data.dht22.hum);
-	MQTT_Publish(&mqtt_client, "humidity/"SERIAL_NUMBER, buff, strlen(buff), 0, 1);
+	MQTT_Publish(&mqtt_client, "humidity/"SERIAL_NUMBER, data.dht22.hum_string, strlen(data.dht22.hum_string), 0, 1);
 
 	os_memset(buff,0,64);
 	c_sprintf(buff,"%d",data.bmp180.press);
