@@ -7,3 +7,5 @@ At this point it allows connectivity between Naze32 Board and any Wifi-enabled d
 
 WiFi dongle creates a websocked and relays all IO to UART. This project can be extended to host web interface for Cleanflight configuration.
 
+
+![Sceenshot](http://i.imgur.com/bM87UOK.png)
