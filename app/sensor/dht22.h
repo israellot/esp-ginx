@@ -15,6 +15,8 @@ typedef struct{
 
 	float temp;
 	float hum;
+        char temp_string[7];
+        char hum_string[5];
 
 } dht_data;
 

@@ -144,8 +144,8 @@ int ICACHE_FLASH_ATTR http_dht_api_read(http_connection *c) {
 		
 	//create json
 	cJSON *root = cJSON_CreateObject();
-	cJSON_AddNumberToObject(root,"temp",data.dht22.temp);
-	cJSON_AddNumberToObject(root,"hum",data.dht22.hum);
+        cJSON_AddStringToObject(root,"temp",data.dht22.temp_string);
+	cJSON_AddStringToObject(root,"hum",data.dht22.hum_string);
 
 	//write json
 	http_write_json(c,root);

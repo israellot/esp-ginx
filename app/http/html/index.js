@@ -378,10 +378,10 @@ $(function(){
 				contentType: 'application/json',
 				success:function(data){
 
-					$('#temp-data').text(data.temp.toFixed(2)+' C');
-					$('#hum-data').text(data.hum.toFixed(2)+' %');
+					$('#temp-data').text(Number(data.temp).toFixed(1)+' C');
+					$('#hum-data').text(Number(data.hum).toFixed(1)+' %');
 					//chart push new
-			        lineChart.addData([data.temp,data.hum],'');
+			        lineChart.addData([Number(data.temp).toFixed(1),Number(data.hum).toFixed(1)],'');
 				}
 			});
 
