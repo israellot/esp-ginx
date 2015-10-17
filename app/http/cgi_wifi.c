@@ -276,7 +276,7 @@ int ICACHE_FLASH_ATTR http_wifi_api_scan(http_connection *c) {
 
 			//create json
 			cJSON *root = cJSON_CreateObject();
-			cJSON_AddNumberToObject(root,"ap_count",wifi_get_opmode());
+			cJSON_AddNumberToObject(root,"ap_count",wifi_status.scan_result.ap_count);
 
 			cJSON * array;
 			cJSON * item;
@@ -299,7 +299,7 @@ int ICACHE_FLASH_ATTR http_wifi_api_scan(http_connection *c) {
 			cJSON_Delete(root);
 
 			status->state=99; 		
-			return HTTPD_CGI_DONE;
+			return HTTPD_CGI_MORE;
 						
 			
 		}
