@@ -12,6 +12,7 @@
 #define __HTTP_H
 
 void ICACHE_FLASH_ATTR init_http_server();
+void ICACHE_FLASH_ATTR on_new_data();
 
 #endif
 

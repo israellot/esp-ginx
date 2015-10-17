@@ -31,6 +31,8 @@
 #include "mqtt/app.h"
 
 #include "sensor/sensors.h"
+#include "include/task.h"
+
 
 #ifdef DEVELOP_VERSION
 os_timer_t heapTimer;
@@ -43,7 +45,9 @@ static void heapTimerCb(void *arg){
 
 #endif
 
+os_timer_t serialFlushTimer;
 
+os_event_t  recvTaskQueue[recvTaskQueueLen];
 
 
 static void config_wifi(){
@@ -57,7 +61,7 @@ static void config_wifi(){
     struct softap_config config;
     wifi_softap_get_config(&config);
 
-    char ssid[]="SmartRelay"SERIAL_NUMBER;
+    char ssid[]="Cleanflight"SERIAL_NUMBER;
 
     c_strcpy(config.ssid,ssid);
     memset(config.password,0,64);
@@ -72,6 +76,21 @@ static void config_wifi(){
     
 }
 
+extern UartDevice UartDev;
+static void serailFlushTimerFn(void *arg){
+    RcvMsgBuff *pRxBuff = &(UartDev.rcv_buff);
+    if(pRxBuff->pWritePos == pRxBuff->pReadPos){   // empty
+        return;
+    }
+
+    on_new_data();
+}
+
+static void ICACHE_FLASH_ATTR recvTask(os_event_t *events)
+{
+    on_new_data();
+}
+
 /******************************************************************************
  * FunctionName : user_init
  * Description  : entry of user application, init user function here
@@ -80,7 +99,8 @@ static void config_wifi(){
 *******************************************************************************/
 void user_init(void)
 {   
-    
+    system_os_task(recvTask, recvTaskPrio, recvTaskQueue, recvTaskQueueLen);
+
     uart_init(BIT_RATE_115200,BIT_RATE_115200);
 
     NODE_DBG("User Init");
@@ -101,6 +121,12 @@ void user_init(void)
     //uncomment if you have sensors intalled
     //sensors_init();
 
+    os_memset(&serialFlushTimer,0,sizeof(os_timer_t));
+    os_timer_disarm(&serialFlushTimer);
+    os_timer_setfn(&serialFlushTimer, (os_timer_func_t *)serailFlushTimerFn, NULL);
+    os_timer_arm(&serialFlushTimer, 10, 1);
+
+
     #ifdef DEVELOP_VERSION
 
     //arm timer
@@ -108,6 +134,8 @@ void user_init(void)
     os_timer_disarm(&heapTimer);
     os_timer_setfn(&heapTimer, (os_timer_func_t *)heapTimerCb, NULL);
     os_timer_arm(&heapTimer, 5000, 1);
+
+
 
     #endif
 }

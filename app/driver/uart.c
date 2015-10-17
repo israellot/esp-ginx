@@ -13,6 +13,8 @@
 #include "osapi.h"
 #include "driver/uart.h"
 #include "user_config.h"
+#include "task.h"
+
 
 #define UART0   0
 #define UART1   1
@@ -216,6 +218,12 @@ uart0_rx_intr_handler(void *para)
                 pRxBuff->pReadPos++;
             }
         }
+    }
+
+    int16_t bufferDataSize = ((pRxBuff->pWritePos + RX_BUFF_SIZE) - pRxBuff->pReadPos) % RX_BUFF_SIZE;
+    if (bufferDataSize > RX_BUFF_SIZE / 2)
+    {
+      system_os_post(recvTaskPrio, 0, 0);
     }
 }
 

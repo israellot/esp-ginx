@@ -224,7 +224,7 @@ int ICACHE_FLASH_ATTR http_websocket_HANDSHAKE(http_connection *c){
 
 	http_reset_buffer(c);
 
-	int ret = http_write(c," HTTP/1.1 101 Switching Protocols")	
+	int ret = http_write(c,"HTTP/1.1 101 Switching Protocols")
 	&& http_end_line(c)
 	&& http_end_headers(c);		
 
