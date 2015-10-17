@@ -34,7 +34,8 @@ SUBDIRS=    \
     smart \
     util \
     sensor \
-    spiffs
+    spiffs \
+    arduino
 
 endif # } PDIR
 
@@ -80,7 +81,8 @@ COMPONENTS_eagle.app.v6 = \
     smart/smart.a \
     util/util.a \
     sensor/sensors.a \
-    spiffs/spiffs.a
+    spiffs/spiffs.a \
+    arduino/libarduino.a
 
 
 LINKFLAGS_eagle.app.v6 = \
