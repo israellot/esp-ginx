@@ -65,8 +65,9 @@ int ICACHE_FLASH_ATTR http_write_json(http_connection *c,cJSON *root){
 	char * json_string;
 	json_string = cJSON_Print(root);
 
-	http_write(c,json_string);
+	int ret = http_write(c,json_string);
 	os_free(json_string);
+	return ret;
 
 }
 
@@ -227,7 +228,7 @@ int ICACHE_FLASH_ATTR http_websocket_HANDSHAKE(http_connection *c){
 	int ret = http_write(c,"HTTP/1.1 101 Switching Protocols")	
 	&& http_end_line(c)
 	&& http_end_headers(c);		
-
+	return ret;
 }
 
 
