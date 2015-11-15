@@ -198,7 +198,7 @@ static int ICACHE_FLASH_ATTR http_ws_cgi_execute(http_connection * c){
 
 
 		}
-		else if(c->state = HTTPD_STATE_WS_CLIENT_DISCONNECT){
+		else if(c->state == HTTPD_STATE_WS_CLIENT_DISCONNECT){
 
 			if(client_disconnected_callback!=NULL)
 				client_disconnected_callback(c);
