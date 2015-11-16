@@ -4,6 +4,7 @@
 #include "common.h"
 #include "c_string.h"
 #include "c_stdio.h"
+#include "cpu_esp8266.h"
 
 void cmn_platform_init(void)
 {

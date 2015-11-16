@@ -47,6 +47,7 @@ class MKFS:
 				self.output_writeln('\t\t.gzip=1,')	
 			else:
 				self.output_writeln('\t\t.gzip=0,')			
+
 			self.output_writeln('\t\t.offset='+str(self.offset))			
 			
 			#append data
@@ -61,6 +62,14 @@ class MKFS:
 
 			self._innerCount+=1
 			self.offset+=fileLen;
+
+			#align
+			rest = 4-(self.offset)%4;
+			while rest > 0:
+				self.offset=self.offset+1
+				self.data.append(0);
+				rest=rest-1
+
 
 					
 	def count(self):
@@ -114,6 +123,7 @@ class MKFS:
 		self.output_writeln('};')
 
 		fileHex = ', '.join(hex(x) for x in self.data)	
+
 
 		self.output_writeln('const ICACHE_STORE_ATTR ICACHE_RODATA_ATTR uint8_t rofs_data[]={'+fileHex+'};')
 		#self.output_writeln('static ROFS_FILE_ENTRY ro_file_system_entries[]={'+','.join('file'+str(x) for x in range(0,self._fileCount-1))+'};')

@@ -11,7 +11,8 @@
 #ifndef __HTTP_H
 #define __HTTP_H
 
-#define HTTP_BUFFER_SIZE 1024 // Let's keep it close the TCP packet size ( 1500 ) se we will send a whole packet per time
+#define HTTP_BUFFER_SIZE 1460 // Let's keep it close the TCP MTU (maximum transmit unit) ( 1460 on this lwip ) 
+ 							  //so we will send a whole packet per time
 #define MAX_HEADERS 10
 #define URL_MAX_SIZE 256
 

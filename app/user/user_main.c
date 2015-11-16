@@ -51,7 +51,7 @@ static void config_wifi(){
 
     platform_key_led(0);    
     
-    wifi_station_set_auto_connect(0); 
+    wifi_station_set_auto_connect(1); 
     wifi_set_opmode(0x03); // station+ap mode                       
 
     struct softap_config config;
@@ -81,6 +81,8 @@ static void config_wifi(){
 void user_init(void)
 {   
     
+    system_update_cpu_freq(160); //overclock :)
+
     uart_init(BIT_RATE_115200,BIT_RATE_115200);
 
     NODE_DBG("User Init");

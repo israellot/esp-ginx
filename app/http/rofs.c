@@ -14,28 +14,42 @@
 
 #include "rofs.h"
 #include "rofs_data.c"
+#include "platform/common.h"
 
 //Accessing the flash through the mem emulation at 0x40200000 is a bit hairy: All accesses
 //*must* be aligned 32-bit accesses. Reading a short, byte or unaligned word will result in
 //a memory exception, crashing the program.
 //
 
-
-//Copies len bytes over from dst to src, but does it using *only*
-//aligned 32-bit reads. Yes, it's no too optimized but it's short and sweet and it works.
+//This function assumes both src and dst are 4byte aligned
+//Reading 4bytes at a time speeds up reading from flash
 
 void ICACHE_FLASH_ATTR memcpyAligned(char *dst,const uint8 *src, int len) {
-	int x;
-	int w, b;
-	for (x=0; x<len; x++) {
-		b=((int)src&3);
-		w=*((int *)(src-b));
-		if (b==0) *dst=(w>>0);
-		if (b==1) *dst=(w>>8);
-		if (b==2) *dst=(w>>16);
-		if (b==3) *dst=(w>>24);
-		dst++; src++;
+	
+	uint32_t *dst32 = (uint32_t*)dst;
+	uint32_t *src32 = (uint32_t*)src;
+	
+	while(len>0){
+		
+		if(len>3){
+			*dst32=*src32;	
+			dst32++;
+			src32++;			
+			len-=4;			
+		}
+		else{			
+			dst = (uint8_t*)dst32;
+			uint32_t s = *src32;
+			uint8_t *s8 = (uint8_t*)&s;
+			int i;
+			for(i=0;len>0;i++,len--,dst++) 
+				*dst=s8[i];
+
+			len=0;
+		}
+
 	}
+
 }
 
 RO_FILE* f_open(const char *fileName){
@@ -84,9 +98,8 @@ int f_read(RO_FILE *f,char * buff,int len){
 		bytesToRead=remLen;
 
 	NODE_DBG("Reading %d bytes from %s",bytesToRead,f->file->name);
-	memcpyAligned(buff,rofs_data+f->file->offset+f->readPos,bytesToRead);
-	//spi_flash_read((uint32)&rofs_data + f->file->offset + f->readPos,(uint32*)buff,bytesToRead/4);
-
+	memcpyAligned(buff,rofs_data+f->file->offset+f->readPos,bytesToRead);	
+	//platform_flash_read(buff,(uint32_t)(rofs_data+f->file->offset+f->readPos),bytesToRead);
 	f->readPos+=bytesToRead;
 	
 	f->eof= (f->readPos == f->file->size);	
