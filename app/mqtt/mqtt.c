@@ -280,7 +280,7 @@ void ICACHE_FLASH_ATTR mqtt_timer(void *arg)
 				espconn_secure_sent(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
 			}
 			else{
-				espconn_sent(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
+				espconn_send(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
 			}
 
 			client->mqtt_state.outbound_message = NULL;
@@ -350,7 +350,7 @@ mqtt_tcpclient_connect_cb(void *arg)
 		espconn_secure_sent(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
 	}
 	else{
-		espconn_sent(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
+		espconn_send(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
 	}
 
 	client->mqtt_state.outbound_message = NULL;
@@ -472,7 +472,7 @@ MQTT_Task(os_event_t *e)
 				espconn_secure_sent(client->pCon, dataBuffer, dataLen);
 			}
 			else{
-				espconn_sent(client->pCon, dataBuffer, dataLen);
+				espconn_send(client->pCon, dataBuffer, dataLen);
 			}
 
 			client->mqtt_state.outbound_message = NULL;

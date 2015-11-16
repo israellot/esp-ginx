@@ -26,13 +26,16 @@
 #include "rofs.h"
 #include "cgi.h"
 
+
+// If a request to transmit data overflows the send buffer, the cgi function will be temporarely 
+// replaced by this one and later restored when all data is sent.
 int ICACHE_FLASH_ATTR cgi_transmit(http_connection *connData){
 
 	NODE_DBG("cgi_transmit");
 	struct cgi_transmit_arg *arg = (struct cgi_transmit_arg*)connData->cgi.data;
 
 	if(arg->len > 0){
-		NODE_DBG("cgi_transmit has data, %d bytes",arg->len);
+		NODE_DBG("cgi_transmit %d bytes",arg->len);
 		int rem = connData->output.buffer + HTTP_BUFFER_SIZE - connData->output.bufferPos;
 		int bytesToWrite = rem;
 		if(arg->len < rem )
@@ -48,7 +51,7 @@ int ICACHE_FLASH_ATTR cgi_transmit(http_connection *connData){
 	if(arg->len==0){
 
 		//all written
-		NODE_DBG("cgi_transmit no data");
+		
 		//free data
 		os_free(arg->data);
 

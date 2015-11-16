@@ -47,10 +47,6 @@
 // c_getenv() get env "LUA_INIT" string for lua initialization.
 const char *c_getenv(const char *__string);
 
-void *c_malloc(size_t __size);
-void *c_zalloc(size_t __size);
-void c_free(void *);
-
 // int	c_rand(void);
 // void c_srand(unsigned int __seed);
 
