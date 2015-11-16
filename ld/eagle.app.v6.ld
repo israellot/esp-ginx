@@ -20,6 +20,11 @@ PHDRS
 
 /*  Default entry point:  */
 ENTRY(call_user_start)
+EXTERN(_DebugExceptionVector)
+EXTERN(_DoubleExceptionVector)
+EXTERN(_KernelExceptionVector)
+EXTERN(_NMIExceptionVector)
+EXTERN(_UserExceptionVector)
 PROVIDE(_memmap_vecbase_reset = 0x40000000);
 /* Various memory-map dependent cache attribute settings: */
 _memmap_cacheattr_wb_base = 0x00000110;
@@ -66,6 +71,17 @@ SECTIONS
     _dport0_data_end = ABSOLUTE(.);
   } >dport0_0_seg :dport0_0_phdr
 
+
+  .lit4 : ALIGN(4)
+  {
+    _lit4_start = ABSOLUTE(.);
+    *(*.lit4)
+    *(.lit4.*)
+    *(.gnu.linkonce.lit4.*)
+    _lit4_end = ABSOLUTE(.);
+  } >iram1_0_seg :iram1_0_phdr
+  
+  
   .irom0.text : ALIGN(4)
   {
     _irom0_text_start = ABSOLUTE(.);
@@ -80,16 +96,40 @@ SECTIONS
   {
     _stext = .;
     _text_start = ABSOLUTE(.);
+    *(.UserEnter.text)
+    . = ALIGN(16);
+    *(.DebugExceptionVector.text)
+    . = ALIGN(16);
+    *(.NMIExceptionVector.text)
+    . = ALIGN(16);
+    *(.KernelExceptionVector.text)
+    LONG(0)
+    LONG(0)
+    LONG(0)
+    LONG(0)
+    . = ALIGN(16);
+    *(.UserExceptionVector.text)
+    LONG(0)
+    LONG(0)
+    LONG(0)
+    LONG(0)
+    . = ALIGN(16);
+    *(.DoubleExceptionVector.text)
+    LONG(0)
+    LONG(0)
+    LONG(0)
+    LONG(0)
+    . = ALIGN (16);
     *(.entry.text)
     *(.init.literal)
     *(.init)
-    /* *(.literal .text .literal.* .text.* .stub .gnu.warning .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*) */
     *(.literal .text .iram0.text .stub .gnu.warning .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*)
     *(.fini.literal)
     *(.fini)
     *(.gnu.version)
     _text_end = ABSOLUTE(.);
     _etext = .;
+
   } >iram1_0_seg :iram1_0_phdr
 
   .lit4 : ALIGN(4)
@@ -121,6 +161,7 @@ SECTIONS
   .rodata : ALIGN(4)
   {
     _rodata_start = ABSOLUTE(.);
+	*(.sdk.version)
     *(.rodata)
     *(.rodata.*)
     *(.gnu.linkonce.r.*)

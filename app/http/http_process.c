@@ -21,6 +21,7 @@
 #include "http_server.h"
 #include "http_helper.h"
 #include "user_config.h"
+#include "cgi.h"
 
 static http_connection connection_poll[MAX_CONNECTIONS];
 
@@ -43,7 +44,7 @@ int ICACHE_FLASH_ATTR http_transmit(http_connection *c){
 	int len = (c->output.bufferPos - c->output.buffer);
 	if(len>0 && len <= HTTP_BUFFER_SIZE){
 
-			espconn_sent(c->espConnection, (uint8_t*)(c->output.buffer),len);			
+			espconn_send(c->espConnection, (uint8_t*)(c->output.buffer),len);			
 	}
 	else{
 		NODE_DBG("Wrong transmit size %d",len);
@@ -59,11 +60,12 @@ int ICACHE_FLASH_ATTR http_nwrite(http_connection *c,const char * message,size_t
 
 	int rem;
 
-process:		
+		
 	rem = c->output.buffer + HTTP_BUFFER_SIZE - c->output.bufferPos;
 	//NODE_DBG("Response write %d, Buffer rem %d , buffer add : %p",size,rem,c->response.buffer);
 
-	if(rem < size){
+
+	if(rem < size && c->cgi.function!=cgi_transmit){
 		NODE_DBG("Buffer Overflow");
 
 		//copy what's possible
@@ -71,8 +73,21 @@ process:
 		message+=rem; //advance message
 		size-=rem; //adjust size
 		c->output.bufferPos+=rem; //mark buffer pos
-		http_transmit(c);
-		goto process; //restart;
+
+		struct cgi_transmit_arg *transmit_cgi = (struct cgi_transmit_arg*)os_malloc(sizeof(struct cgi_transmit_arg));
+		os_memcpy(&transmit_cgi->previous_cgi,&c->cgi,sizeof(cgi_struct));
+		c->cgi.function=cgi_transmit;
+
+		transmit_cgi->data = (uint8_t*)os_malloc(size);
+		os_memcpy(transmit_cgi->data,message,size);
+		transmit_cgi->len=size;
+		transmit_cgi->dataPos=transmit_cgi->data;
+
+		c->cgi.data = transmit_cgi;
+		c->cgi.done=0;
+
+		//http_transmit(c);
+		//goto process; //restart;
 
 	}else{
 		os_memcpy(c->output.bufferPos,message,size);

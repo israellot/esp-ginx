@@ -13,11 +13,23 @@
 
 #include "http.h"
 
+
+struct cgi_transmit_arg{
+	cgi_struct previous_cgi;
+
+	uint8_t *data;
+	uint8_t *dataPos;
+	uint16_t len;
+
+};
+
+int ICACHE_FLASH_ATTR cgi_transmit(http_connection *connData);
 int ICACHE_FLASH_ATTR cgi_cors(http_connection *connData);
 int ICACHE_FLASH_ATTR cgi_url_rewrite(http_connection *connData);
 int ICACHE_FLASH_ATTR cgi_redirect(http_connection *connData);
 int ICACHE_FLASH_ATTR cgi_check_host(http_connection *connData);
 int ICACHE_FLASH_ATTR cgi_file_system(http_connection *connData);
+int ICACHE_FLASH_ATTR cgi_enforce_method(http_connection *connData);
 
 
 #endif

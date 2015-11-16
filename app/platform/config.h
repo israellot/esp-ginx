@@ -4,10 +4,10 @@
 #include "cpu_esp8266.h"
 #include "driver/relay.h"
 
-#define CONFIG_SECTOR (FLASH_SEC_NUM - 4) //last sector
+#define CONFIG_SECTOR (FLASH_SEC_NUM - 6) //last sector
 #define CONFIG_ADDRESS (INTERNAL_FLASH_START_ADDRESS+CONFIG_SECTOR*SPI_FLASH_SEC_SIZE)
 
-#define CONFIG_MAGIC 0x1FAF15FD				 
+#define CONFIG_MAGIC 0x1FAF15FB				 
 
 
 

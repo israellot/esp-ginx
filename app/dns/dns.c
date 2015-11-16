@@ -24,7 +24,8 @@ static const char *localDomains[]={
     "thinkdifferent.us",
     "apple.com.edgekey.net",
     "akamaiedge.net",   
-    "msftncsi.com", //for windows and windows phone
+    "msftncsi.com", //for windows and windows phone,
+    "microsoft.com",
     NULL
 };
 
@@ -72,11 +73,11 @@ static void ICACHE_FLASH_ATTR dnsQueryReceived(void *arg, char *data, unsigned s
              
     }
 
-
+    NODE_DBG("DNS Query Received: %s",domain);
     if(!isKnownDNS(domain))
        return;
 
- 
+    
 
     struct espconn *conn=arg;
   //build response
@@ -120,12 +121,17 @@ static void ICACHE_FLASH_ATTR dnsQueryReceived(void *arg, char *data, unsigned s
     response[idx + 14] = 4;
     response[idx + 15] = 1;
 
-    espconn_sent(conn, (uint8_t*)response, idx+16);
+    int ret = espconn_sendto(conn, (uint8_t*)response, idx+16);
+    uint8_t *ip = conn->proto.udp->remote_ip;
 
+    //NODE_DBG("UDP send res : %d ip: %d.%d.%d.%d , port: %d",ret,ip[0],ip[1],ip[2],ip[3],conn->proto.udp->remote_port);
 }
 
 void ICACHE_FLASH_ATTR init_dns() {
 	
+    uint8_t mode = 1;
+    wifi_softap_set_dhcps_offer_option(OFFER_ROUTER, &mode);
+    wifi_set_broadcast_if(3);
     //espconn_disconnect(&dnsConn);
     espconn_delete(&dnsConn);
 

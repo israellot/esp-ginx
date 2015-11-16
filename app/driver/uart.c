@@ -238,7 +238,10 @@ uart_init(UartBautRate uart0_br, UartBautRate uart1_br)
 
     // install uart1 putc callback
 #ifndef NODE_DEBUG
-    os_install_putc1((void *)uart1_write_char);
+    if(DEBUG_UART==0)
+      os_install_putc1((void *)uart0_putc);
+    else
+      os_install_putc1((void *)uart1_write_char);
 #endif
 }
 

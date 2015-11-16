@@ -28,15 +28,15 @@
 
 static http_server_url api_urls[]={
 	
-//------URL-------------------------CGI----------------------ARGUMENT--------METHOD-----FLAGS------	
-	{"/api/wifi/status",		http_wifi_api_get_status,		NULL,		HTTP_POST,	NO_FLAG},
-	{"/api/wifi/scan",			http_wifi_api_scan,				NULL,		HTTP_POST,	NO_FLAG},
-	{"/api/wifi/connect",		http_wifi_api_connect_ap,		NULL,		HTTP_POST,	NEED_BODY},
-	{"/api/wifi/disconnect",	http_wifi_api_disconnect,		NULL,		HTTP_POST,	NO_FLAG},
-	{"/api/wifi/checkInternet",	http_wifi_api_check_internet,	NULL,		HTTP_POST,	NO_FLAG},
-	{"/api/relay/state",		http_relay_api_status,			NULL,		HTTP_POST,	NO_FLAG},
-	{"/api/relay/toggle",		http_relay_api_toggle,			NULL,		HTTP_POST,	NEED_BODY},
-	{"/api/dht/read",			http_dht_api_read,				NULL,		HTTP_POST,	NO_FLAG},
+//------URL-------------------------CGI----------------------ARGUMENT--------METHOD-------------FLAGS------	
+	{"/api/wifi/status",		http_wifi_api_get_status,		NULL,		HTTP_POST,			NO_FLAG},
+	{"/api/wifi/scan",			http_wifi_api_scan,				NULL,		HTTP_POST,			NO_FLAG},
+	{"/api/wifi/connect",		http_wifi_api_connect_ap,		NULL,		HTTP_POST,			NEED_BODY},
+	{"/api/wifi/disconnect",	http_wifi_api_disconnect,		NULL,		HTTP_POST,			NO_FLAG},
+	{"/api/wifi/checkInternet",	http_wifi_api_check_internet,	NULL,		HTTP_POST,			NO_FLAG},
+	{"/api/relay/state",		http_relay_api_status,			NULL,		HTTP_POST,			NO_FLAG},
+	{"/api/relay/toggle",		http_relay_api_toggle,			NULL,		HTTP_POST,			NEED_BODY},
+	{"/api/dht/read",			http_dht_api_read,				NULL,		HTTP_POST,			NO_FLAG},
 	{NULL,						NULL,							NULL,		HTTP_ANY_METHOD,	NO_FLAG}
 		
 };

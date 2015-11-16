@@ -51,7 +51,7 @@ static void config_wifi(){
 
     platform_key_led(0);    
     
-    wifi_station_set_auto_connect(1); 
+    wifi_station_set_auto_connect(0); 
     wifi_set_opmode(0x03); // station+ap mode                       
 
     struct softap_config config;
@@ -62,9 +62,9 @@ static void config_wifi(){
     c_strcpy(config.ssid,ssid);
     memset(config.password,0,64);
     config.ssid_len=strlen(ssid);
-    config.channel=6;
+    config.channel=11;
     config.authmode=AUTH_OPEN;
-    config.max_connection=1;
+    config.max_connection=4;
     config.ssid_hidden=0;
 
     wifi_softap_set_config(&config);

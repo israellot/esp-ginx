@@ -54,7 +54,7 @@ int ICACHE_FLASH_ATTR http_server_flag_check(http_connection *c,http_server_url 
 
 	if(url->method!=HTTP_ANY_METHOD){
 		c->cgi.argument=&url->method;
-		r = cgi_enforce_method(c,url->method);
+		r = cgi_enforce_method(c);
 		if(r==HTTPD_CGI_DONE) return r; //return now as request already failed
 	}
 	

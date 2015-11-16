@@ -137,7 +137,7 @@ void ICACHE_FLASH_ATTR http_client_dns_found_cb(const char *name, ip_addr_t *ipa
 }
 
 void ICACHE_FLASH_ATTR http_client_dns_timeout(void *arg){
-	
+	NODE_DBG("http_client_dns_timeout");
 	http_connection *c = (http_connection*)arg;
 	
 	// put null so if dns query response arrives, it wont trigger 
@@ -157,7 +157,7 @@ void ICACHE_FLASH_ATTR http_client_dns(http_connection *c){
 	dns_gethostbyname(host, &c->host_ip, &http_client_dns_found_cb,(void*)c);
 
     os_timer_disarm(&c->timeout_timer);
-    os_timer_setfn(&c->timeout_timer, (os_timer_func_t *)http_client_dns_timeout, &c);
+    os_timer_setfn(&c->timeout_timer, (os_timer_func_t *)http_client_dns_timeout, c);
     os_timer_arm(&c->timeout_timer, 1000, 0);
 
 }

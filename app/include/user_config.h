@@ -19,6 +19,8 @@
 #define NODE_DEBUG
 #endif	/* DEVELOP_VERSION */
 
+#define DEBUG_UART 0 //debug on uart 0 or 1
+
 //#define NODE_ERROR
 
 #ifdef NODE_DEBUG

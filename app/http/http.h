@@ -36,6 +36,19 @@ typedef struct {
 		header headers[MAX_HEADERS];
 } http_buffer;
 
+typedef struct {	
+		cgi_execute_function execute;		
+
+		http_callback function;
+
+		void *data;
+		const void *argument;
+		uint8_t done;
+
+		uint32_t flags;
+
+} cgi_struct;
+
 struct http_connection{
 
 	uint8_t type;
@@ -67,18 +80,7 @@ struct http_connection{
 		size_t len;
 	} body;	
 
-	struct {	
-		cgi_execute_function execute;		
-
-		http_callback function;
-
-		void *data;
-		const void *argument;
-		uint8_t done;
-
-		uint32_t flags;
-
-	} cgi;
+	cgi_struct cgi;
 
 	http_buffer output;
 

@@ -26,6 +26,45 @@
 #include "rofs.h"
 #include "cgi.h"
 
+int ICACHE_FLASH_ATTR cgi_transmit(http_connection *connData){
+
+	NODE_DBG("cgi_transmit");
+	struct cgi_transmit_arg *arg = (struct cgi_transmit_arg*)connData->cgi.data;
+
+	if(arg->len > 0){
+		NODE_DBG("cgi_transmit has data, %d bytes",arg->len);
+		int rem = connData->output.buffer + HTTP_BUFFER_SIZE - connData->output.bufferPos;
+		int bytesToWrite = rem;
+		if(arg->len < rem )
+			bytesToWrite = arg->len;
+
+		http_nwrite(connData,arg->dataPos,bytesToWrite);
+
+		arg->len -= bytesToWrite;
+		arg->dataPos+=bytesToWrite;
+
+	}
+	
+	if(arg->len==0){
+
+		//all written
+		NODE_DBG("cgi_transmit no data");
+		//free data
+		os_free(arg->data);
+
+		//copy old cgi back
+		os_memcpy(&connData->cgi,&arg->previous_cgi,sizeof(cgi_struct));
+
+		//free cgi arg
+		os_free(arg);
+
+	}
+
+	return HTTPD_CGI_MORE;
+
+}
+
+
 // This makes sure we aren't serving static files on POST requests for example
 int ICACHE_FLASH_ATTR cgi_enforce_method(http_connection *connData) {	
 
