@@ -5,8 +5,19 @@
 #include "eagle_soc.h"
 #include "c_types.h"
 
+typedef void (*uart0_data_received_callback_t)(uint8_t *data,int len);
+
+#define UART0   0
+#define UART1   1
+
+#define UART_HW_RTS   0   //set 1: enable uart hw flow control RTS, PIN MTDO, FOR UART0
+#define UART_HW_CTS  0    //set1: enable uart hw flow contrl CTS , PIN MTCK, FOR UART0
+
 #define RX_BUFF_SIZE    0x100
 #define TX_BUFF_SIZE    100
+
+#define UART_FIFO_LEN  128  //define the tx fifo length
+#define UART_TX_EMPTY_THRESH_VAL 0x10
 
 typedef enum {
     FIVE_BITS = 0x0,
@@ -95,11 +106,14 @@ typedef struct {
     int                      buff_uart_no;  //indicate which uart use tx/rx buffer
 } UartDevice;
 
+
+void ICACHE_FLASH_ATTR uart_config(uint8_t uart_no);
 void uart_init(UartBautRate uart0_br, UartBautRate uart1_br);
-void uart0_sendStr(const char *str);
-void uart0_putc(const char c);
-void uart0_tx_buffer(uint8 *buf, uint16 len);
-void uart_setup(uint8 uart_no);
-STATUS uart_tx_one_char(uint8 uart, uint8 TxChar);
+void uart_write_string(uint8_t uart,const char *s);
+void uart_write(uint8_t uart,uint8_t *data,int len);
+void uart_write_char(uint8_t uart,char c);
+
+void uart_clear_data_callback();
+void uart_register_data_callback(uart0_data_received_callback_t callback);
 #endif
 

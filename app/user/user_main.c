@@ -59,7 +59,7 @@ static void config_wifi(){
 
     char ssid[]="SmartRelay"SERIAL_NUMBER;
 
-    c_strcpy(config.ssid,ssid);
+    strcpy(config.ssid,ssid);
     memset(config.password,0,64);
     config.ssid_len=strlen(ssid);
     config.channel=11;

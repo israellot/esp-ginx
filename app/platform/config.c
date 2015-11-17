@@ -17,16 +17,14 @@ void config_save(config_data * data){
 	NODE_DBG("Config save");
 
 	platform_flash_erase_sector(CONFIG_SECTOR);
-
-	NODE_DBG("Config sector erased");
-
+	
 	if(data!=NULL){
 		platform_flash_write((const void *)data,CONFIG_ADDRESS,sizeof(config_data));
 		os_memcpy(temp_data,data,sizeof(config_data));
 		local_up_to_date=1;
 	}
 	else{
-		NODE_DBG("Save null");
+		
 		platform_flash_write((const void *)&temp_data,CONFIG_ADDRESS,sizeof(config_data));
 	}		
 }

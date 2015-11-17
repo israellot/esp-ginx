@@ -14,9 +14,9 @@ static void pwms_init();
 
 void output_redirect(const char *str){
 
-#ifdef DEVELOP_VERSION    
-   uart0_sendStr(str);
-#endif
+  #ifdef DEVELOP_VERSION    
+     uart_write_string(0,str);
+  #endif
 }
 
 int platform_init()
@@ -184,85 +184,12 @@ int platform_gpio_intr_init( unsigned pin, GPIO_INT_TYPE type )
 // UART
 // TODO: Support timeouts.
 
-// UartDev is defined and initialized in rom code.
-extern UartDevice UartDev;
-uint32_t platform_uart_setup( unsigned id, uint32_t baud, int databits, int parity, int stopbits )
-{
-  switch( baud )
-  {
-    case BIT_RATE_1200:
-    case BIT_RATE_2400:
-    case BIT_RATE_4800:
-    case BIT_RATE_9600:
-    case BIT_RATE_19200:
-    case BIT_RATE_38400:
-    case BIT_RATE_57600:
-    case BIT_RATE_74880:
-    case BIT_RATE_115200:
-    case BIT_RATE_230400:
-    case BIT_RATE_460800:
-    case BIT_RATE_921600:
-      UartDev.baut_rate = baud;
-      break;
-    default:
-      UartDev.baut_rate = BIT_RATE_9600;
-      break;
-  }
 
-  switch( databits )
-  {
-    case 5:
-      UartDev.data_bits = FIVE_BITS;
-      break;
-    case 6:
-      UartDev.data_bits = SIX_BITS;
-      break;
-    case 7:
-      UartDev.data_bits = SEVEN_BITS;
-      break;
-    case 8:
-      UartDev.data_bits = EIGHT_BITS;
-      break;
-    default:
-      UartDev.data_bits = EIGHT_BITS;
-      break;
-  }
-
-  switch (stopbits)
-  {
-    case PLATFORM_UART_STOPBITS_1:
-      UartDev.stop_bits = ONE_STOP_BIT;
-      break;
-    case PLATFORM_UART_STOPBITS_2:
-      UartDev.stop_bits = TWO_STOP_BIT;
-      break;
-    default:
-      UartDev.stop_bits = ONE_STOP_BIT;
-      break;
-  }
-
-  switch (parity)
-  {
-    case PLATFORM_UART_PARITY_EVEN:
-      UartDev.parity = EVEN_BITS;
-      break;
-    case PLATFORM_UART_PARITY_ODD:
-      UartDev.parity = ODD_BITS;
-      break;
-    default:
-      UartDev.parity = NONE_BITS;
-      break;
-  }
-
-  uart_setup(id);
-
-  return baud;
-}
 
 // Send: version with and without mux
 void platform_uart_send( unsigned id, u8 data ) 
 {
-  uart_tx_one_char(id, data);
+  uart_write_char(id, data);
 }
 
 // ****************************************************************************
