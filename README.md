@@ -9,7 +9,7 @@ Main features
 =============
 
 1. Event-driven, single threaded. No blocking, nowhere.
-2. DNS Server built in, means we hava a captive portal ( will open upon connection os most phones and computers )
+2. DNS Server built in, means we have a captive portal ( will open upon connection os most phones and computers )
 3. Host check, means we can ensure server is on here.com and not there.com
 4. Redirects ( so #2 will work )
 5. HTTP Method enforcement
