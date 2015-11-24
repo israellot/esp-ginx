@@ -115,10 +115,13 @@ int ICACHE_FLASH_ATTR http_server_cgi_execute(http_connection * conn){
 
 			int match=0;
 			
-			if (os_strcmp(url, conn->url)==0) match=1;
+			char *url_path = http_url_get_path(conn);
+			NODE_DBG("Url path: %s",url_path);
+
+			if (os_strcmp(url, url_path)==0) match=1;
 
 			if (url[os_strlen(url)-1]=='*' &&
-					os_strncmp(url, conn->url, os_strlen(url)-1)==0) match=1;
+					os_strncmp(url, url_path, os_strlen(url)-1)==0) match=1;
 
 			if (match) {
 				NODE_DBG("Url match index %d", i);

@@ -57,6 +57,7 @@ void ICACHE_FLASH_ATTR http_process_free_connection(http_connection *conn);
 char * ICACHE_FLASH_ATTR http_url_get_path(http_connection *c);
 char * ICACHE_FLASH_ATTR http_url_get_host(http_connection *c);
 char * ICACHE_FLASH_ATTR http_url_get_query(http_connection *c);
+char * ICACHE_FLASH_ATTR http_url_get_query_param(http_connection *c,char* param);
 
 
 void ICACHE_FLASH_ATTR http_parse_url(http_connection *c);

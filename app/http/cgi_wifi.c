@@ -282,6 +282,12 @@ int ICACHE_FLASH_ATTR http_wifi_api_scan(http_connection *c) {
 			cJSON * item;
 			cJSON_AddItemToObject(root, "ap", array = cJSON_CreateArray());
 
+
+			//check max count on query string
+			char *query=http_url_get_query_param(c,"max");
+			NODE_DBG("Query :%s",http_url_get_field(c,UF_QUERY));
+			NODE_DBG("Param: %s",query);
+
 			int i;
 			for(i=0;i< wifi_status.scan_result.ap_count;i++){
 

@@ -169,7 +169,8 @@ char * ICACHE_FLASH_ATTR http_url_get_field(http_connection *c,enum http_parser_
 
 		if(*start==0){
 			if(field==UF_PATH)
-			*start='/';
+				*start='/';
+
 		}
 
 		return start;
@@ -178,6 +179,64 @@ char * ICACHE_FLASH_ATTR http_url_get_field(http_connection *c,enum http_parser_
 		return NULL;
 
 }
+
+char * ICACHE_FLASH_ATTR http_url_get_query_param(http_connection *c,char* param){
+	NODE_DBG("http_url_get_query_param");
+	if(!(c->url_parsed.field_set & (1<<UF_QUERY))) //return null if there's no query at all
+		return NULL;
+
+
+	//find field
+	char *start = c->url + c->url_parsed.field_data[UF_QUERY].off;
+	char * end = start + c->url_parsed.field_data[UF_QUERY].len -1;
+
+	char *param_search = (char*)os_malloc(strlen(param)+2);
+	os_strcpy(param_search,param);
+	os_strcat(param_search,"=");
+
+	NODE_DBG("search for : %s",param_search);
+
+	char *ret=NULL;
+
+	start--; //to start at ?
+	while(start<=end){
+
+		NODE_DBG("char : %c",*start);
+
+		if(*start == '?' || *start == '&' || *start=='\0'){
+
+			NODE_DBG("Is match?");
+
+			start++;
+			//check param name, case insensitive
+			if(os_strcasecmp(param_search,start)==0){
+				NODE_DBG("yes");
+				//match
+				start +=strlen(param_search);
+
+				ret = start;
+
+				//0 end string				
+				while(*start!='\0' && *start!='&')
+					start++;
+				
+				*start='\0';
+
+				break;
+
+			}
+
+		}
+
+		start++;
+
+	}
+
+	os_free(param_search);
+	return ret;
+}
+
+
 
 
 char * ICACHE_FLASH_ATTR http_url_get_host(http_connection *c){
