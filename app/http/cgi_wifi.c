@@ -15,6 +15,7 @@
 #include "espconn.h"
 #include "c_stdio.h"
 #include "user_config.h"
+ #include <limits.h>
 
 #include "cgi.h"
 
@@ -285,11 +286,12 @@ int ICACHE_FLASH_ATTR http_wifi_api_scan(http_connection *c) {
 
 			//check max count on query string
 			char *query=http_url_get_query_param(c,"max");
-			NODE_DBG("Query :%s",http_url_get_field(c,UF_QUERY));
-			NODE_DBG("Param: %s",query);
+			int max = INT_MAX;
+			if(query!=NULL)		
+				max = atoi(query);
 
 			int i;
-			for(i=0;i< wifi_status.scan_result.ap_count;i++){
+			for(i=0;i< wifi_status.scan_result.ap_count && i<max;i++){
 
 				cJSON_AddItemToArray(array,item=cJSON_CreateObject());
 				cJSON_AddStringToObject(item,"ssid",(const char *)wifi_status.scan_result.ap[i]->ssid);
