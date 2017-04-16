@@ -1,7 +1,7 @@
 esp-ginx
 --------
 
-##Robust HTTP server for the ESP8266
+## Robust HTTP server for the ESP8266
 
 This project was inspired esp-httpd by Sprite_tm, NodeMcu ( https://github.com/nodemcu/nodemcu-firmware ) and NGINX
 
